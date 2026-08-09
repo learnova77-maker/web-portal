@@ -16,7 +16,8 @@ import {
     ExternalLink,
     Clock,
     UserCircle,
-    Sparkles
+    Sparkles,
+    Image as ImageIcon
 } from "lucide-react";
 import { updateStatus } from "@/hooks/useFirebaseCollection";
 
@@ -25,6 +26,17 @@ interface TeacherVerificationModalProps {
     onClose: () => void;
     teacher: any;
     onOpenChat?: (id: string, name: string) => void;
+}
+
+// Helper to safely extract string URL from strings, objects, or nested URIs
+function resolveImageUrl(val: any): string | null {
+    if (!val) return null;
+    if (typeof val === 'string' && val.trim().length > 5) return val.trim();
+    if (typeof val === 'object') {
+        const url = val.uri || val.url || val.downloadURL || val.path || null;
+        if (typeof url === 'string' && url.trim().length > 5) return url.trim();
+    }
+    return null;
 }
 
 export default function TeacherVerificationModal({
@@ -36,14 +48,29 @@ export default function TeacherVerificationModal({
     const [copied, setCopied] = useState(false);
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [imgErrors, setImgErrors] = useState<{ [key: string]: boolean }>({});
 
     if (!isOpen || !teacher) return null;
 
     const docType = (teacher.idType || "cnic").toUpperCase();
     const docNumber = teacher.idNumber || teacher.cnicNumber || teacher.passportNumber || "Not Provided";
-    const cnicFront = teacher.cnicFrontUrl || teacher.idCardUrl || teacher.idDocumentUrl || null;
-    const cnicBack = teacher.cnicBackUrl || null;
-    const degreeDoc = teacher.degreeUrl || teacher.qualificationDocUrl || null;
+
+    // Resolve URLs exhaustively
+    const avatar = resolveImageUrl(
+        teacher.photoUrl || teacher.photoURL || teacher.profileImage || teacher.picture || teacher.avatar || teacher.userImage || teacher.photo
+    );
+
+    const cnicFront = resolveImageUrl(
+        teacher.cnicFrontUrl || teacher.cnicFront || teacher.idCardUrl || teacher.idDocumentUrl || teacher.idCard || teacher.idFrontUrl || teacher.cnic_front || teacher.cnicFrontImage
+    );
+
+    const cnicBack = resolveImageUrl(
+        teacher.cnicBackUrl || teacher.cnicBack || teacher.cnic_back || teacher.idBackUrl || teacher.cnicBackImage
+    );
+
+    const degreeDoc = resolveImageUrl(
+        teacher.degreeUrl || teacher.degree || teacher.qualificationDocUrl || teacher.qualificationDoc || teacher.qualification_doc || teacher.degree_url || teacher.qualificationDocImage
+    );
 
     const handleCopyNumber = () => {
         if (docNumber && docNumber !== "Not Provided") {
@@ -81,17 +108,27 @@ export default function TeacherVerificationModal({
         }
     };
 
+    const markImgError = (key: string) => {
+        setImgErrors(prev => ({ ...prev, [key]: true }));
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-            <div className="bg-zinc-950 border border-cyan-500/20 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-zinc-950 border border-cyan-500/20 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.9)] overflow-hidden relative font-sans">
                 
                 {/* Header */}
-                <div className="p-6 border-b border-white/5 bg-zinc-900/60 flex items-center justify-between">
+                <div className="p-6 border-b border-white/5 bg-zinc-900/80 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        {teacher.photoUrl ? (
-                            <img src={teacher.photoUrl} alt="" className="w-14 h-14 rounded-2xl object-cover border border-cyan-500/30 shadow-md" />
+                        {avatar && !imgErrors['avatar'] ? (
+                            <img 
+                                src={avatar} 
+                                alt={teacher.fullName || "Teacher Profile"} 
+                                onError={() => markImgError('avatar')}
+                                referrerPolicy="no-referrer"
+                                className="w-14 h-14 rounded-2xl object-cover border border-cyan-500/40 shadow-md" 
+                            />
                         ) : (
-                            <div className="w-14 h-14 rounded-2xl bg-zinc-800 text-cyan-400 font-black text-xl flex items-center justify-center border border-white/10">
+                            <div className="w-14 h-14 rounded-2xl bg-zinc-800 text-cyan-400 font-black text-xl flex items-center justify-center border border-white/10 shadow-md">
                                 {teacher.fullName?.charAt(0) || "T"}
                             </div>
                         )}
@@ -123,7 +160,7 @@ export default function TeacherVerificationModal({
                     
                     {/* Identity Verification Section */}
                     <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 space-y-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="w-5 h-5 text-cyan-400" />
                                 <h3 className="font-black text-sm text-white uppercase tracking-wider">Identity Verification ({docType})</h3>
@@ -152,23 +189,53 @@ export default function TeacherVerificationModal({
                                 <div className="flex justify-between items-center text-xs font-bold text-zinc-400">
                                     <span>{docType === 'PASSPORT' ? 'PASSPORT DOCUMENT' : 'CNIC FRONT SIDE'}</span>
                                     {cnicFront && (
-                                        <button
-                                            onClick={() => setLightboxImage(cnicFront)}
-                                            className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px]"
-                                        >
-                                            <Eye size={12} /> Inspect
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setLightboxImage(cnicFront)}
+                                                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px] font-bold"
+                                            >
+                                                <Eye size={12} /> Inspect
+                                            </button>
+                                            <a
+                                                href={cnicFront}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-zinc-400 hover:text-white flex items-center gap-1 text-[11px]"
+                                                title="Open in new tab"
+                                            >
+                                                <ExternalLink size={12} />
+                                            </a>
+                                        </div>
                                     )}
                                 </div>
-                                {cnicFront ? (
+
+                                {cnicFront && !imgErrors['front'] ? (
                                     <div
                                         onClick={() => setLightboxImage(cnicFront)}
                                         className="relative aspect-video rounded-lg overflow-hidden border border-white/10 cursor-pointer group bg-zinc-900"
                                     >
-                                        <img src={cnicFront} alt="Document Front" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        <img 
+                                            src={cnicFront} 
+                                            alt="Document Front" 
+                                            onError={() => markImgError('front')}
+                                            referrerPolicy="no-referrer"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                        />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-1">
                                             <Eye size={16} /> Click to View Full Resolution
                                         </div>
+                                    </div>
+                                ) : cnicFront && imgErrors['front'] ? (
+                                    <div className="aspect-video rounded-lg bg-zinc-900/80 flex flex-col items-center justify-center p-4 text-center border border-amber-500/20 text-xs gap-2">
+                                        <p className="text-amber-400 font-bold">Image load restricted by browser</p>
+                                        <a 
+                                            href={cnicFront} 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="px-3 py-1.5 bg-cyan-500 text-black font-bold rounded-lg text-xs flex items-center gap-1.5 hover:bg-cyan-400"
+                                        >
+                                            <ExternalLink size={13} /> Open Image Direct Link
+                                        </a>
                                     </div>
                                 ) : (
                                     <div className="aspect-video rounded-lg bg-zinc-900 flex flex-col items-center justify-center text-zinc-600 border border-dashed border-white/10 text-xs">
@@ -184,23 +251,53 @@ export default function TeacherVerificationModal({
                                     <div className="flex justify-between items-center text-xs font-bold text-zinc-400">
                                         <span>CNIC BACK SIDE</span>
                                         {cnicBack && (
-                                            <button
-                                                onClick={() => setLightboxImage(cnicBack)}
-                                                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px]"
-                                            >
-                                                <Eye size={12} /> Inspect
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => setLightboxImage(cnicBack)}
+                                                    className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px] font-bold"
+                                                >
+                                                    <Eye size={12} /> Inspect
+                                                </button>
+                                                <a
+                                                    href={cnicBack}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-zinc-400 hover:text-white flex items-center gap-1 text-[11px]"
+                                                    title="Open in new tab"
+                                                >
+                                                    <ExternalLink size={12} />
+                                                </a>
+                                            </div>
                                         )}
                                     </div>
-                                    {cnicBack ? (
+
+                                    {cnicBack && !imgErrors['back'] ? (
                                         <div
                                             onClick={() => setLightboxImage(cnicBack)}
                                             className="relative aspect-video rounded-lg overflow-hidden border border-white/10 cursor-pointer group bg-zinc-900"
                                         >
-                                            <img src={cnicBack} alt="CNIC Back" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            <img 
+                                                src={cnicBack} 
+                                                alt="CNIC Back" 
+                                                onError={() => markImgError('back')}
+                                                referrerPolicy="no-referrer"
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                            />
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-1">
                                                 <Eye size={16} /> Click to View Full Resolution
                                             </div>
+                                        </div>
+                                    ) : cnicBack && imgErrors['back'] ? (
+                                        <div className="aspect-video rounded-lg bg-zinc-900/80 flex flex-col items-center justify-center p-4 text-center border border-amber-500/20 text-xs gap-2">
+                                            <p className="text-amber-400 font-bold">Image load restricted by browser</p>
+                                            <a 
+                                                href={cnicBack} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                className="px-3 py-1.5 bg-cyan-500 text-black font-bold rounded-lg text-xs flex items-center gap-1.5 hover:bg-cyan-400"
+                                            >
+                                                <ExternalLink size={13} /> Open Image Direct Link
+                                            </a>
                                         </div>
                                     ) : (
                                         <div className="aspect-video rounded-lg bg-zinc-900 flex flex-col items-center justify-center text-zinc-600 border border-dashed border-white/10 text-xs">
@@ -238,23 +335,53 @@ export default function TeacherVerificationModal({
                                 <div className="flex justify-between items-center text-xs font-bold text-zinc-400">
                                     <span>ATTACHED DEGREE DOCUMENT</span>
                                     {degreeDoc && (
-                                        <button
-                                            onClick={() => setLightboxImage(degreeDoc)}
-                                            className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px]"
-                                        >
-                                            <Eye size={12} /> View Document
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setLightboxImage(degreeDoc)}
+                                                className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px] font-bold"
+                                            >
+                                                <Eye size={12} /> Inspect
+                                            </button>
+                                            <a
+                                                href={degreeDoc}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-zinc-400 hover:text-white flex items-center gap-1 text-[11px]"
+                                                title="Open in new tab"
+                                            >
+                                                <ExternalLink size={12} />
+                                            </a>
+                                        </div>
                                     )}
                                 </div>
-                                {degreeDoc ? (
+
+                                {degreeDoc && !imgErrors['degree'] ? (
                                     <div
                                         onClick={() => setLightboxImage(degreeDoc)}
                                         className="relative aspect-video rounded-lg overflow-hidden border border-white/10 cursor-pointer group bg-zinc-900"
                                     >
-                                        <img src={degreeDoc} alt="Degree Document" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                        <img 
+                                            src={degreeDoc} 
+                                            alt="Degree Document" 
+                                            onError={() => markImgError('degree')}
+                                            referrerPolicy="no-referrer"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                        />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-1">
                                             <Eye size={16} /> Click to Inspect Degree
                                         </div>
+                                    </div>
+                                ) : degreeDoc && imgErrors['degree'] ? (
+                                    <div className="aspect-video rounded-lg bg-zinc-900/80 flex flex-col items-center justify-center p-4 text-center border border-amber-500/20 text-xs gap-2">
+                                        <p className="text-amber-400 font-bold">Image load restricted by browser</p>
+                                        <a 
+                                            href={degreeDoc} 
+                                            target="_blank" 
+                                            rel="noreferrer"
+                                            className="px-3 py-1.5 bg-cyan-500 text-black font-bold rounded-lg text-xs flex items-center gap-1.5 hover:bg-cyan-400"
+                                        >
+                                            <ExternalLink size={13} /> Open Degree Direct Link
+                                        </a>
                                     </div>
                                 ) : (
                                     <div className="aspect-video rounded-lg bg-zinc-900 flex flex-col items-center justify-center text-zinc-600 border border-dashed border-white/10 text-xs">
@@ -333,8 +460,24 @@ export default function TeacherVerificationModal({
                     >
                         <X size={24} />
                     </button>
-                    <img src={lightboxImage} alt="High Res Document" className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-2xl" />
-                    <p className="text-xs text-zinc-400 font-mono mt-4">Click anywhere to close full resolution inspect view</p>
+                    <img 
+                        src={lightboxImage} 
+                        alt="High Res Document" 
+                        referrerPolicy="no-referrer"
+                        className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-2xl" 
+                    />
+                    <div className="flex items-center gap-4 mt-4">
+                        <a
+                            href={lightboxImage}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-4 py-2 bg-cyan-500 text-black font-bold text-xs rounded-xl flex items-center gap-1.5 hover:bg-cyan-400"
+                        >
+                            <ExternalLink size={14} /> Open Direct Link in New Tab
+                        </a>
+                        <p className="text-xs text-zinc-400 font-mono">Click anywhere to close full resolution inspect view</p>
+                    </div>
                 </div>
             )}
         </div>

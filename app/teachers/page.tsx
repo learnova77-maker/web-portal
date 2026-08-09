@@ -89,9 +89,9 @@ export default function TeachersPage() {
                         </div>
                     </div>
 
-                    {/* Table */}
-                    <div className="bg-zinc-900 rounded-3xl border border-white/5 overflow-hidden shadow-2xl">
-                        <table className="w-full text-left whitespace-nowrap">
+                    {/* Table Container with Overflow X Auto */}
+                    <div className="bg-zinc-900 rounded-3xl border border-white/5 overflow-x-auto shadow-2xl min-w-full">
+                        <table className="w-full text-left whitespace-nowrap min-w-[900px]">
                             <thead className="bg-zinc-950 border-b border-white/5">
                                 <tr>
                                     <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Teacher Info</th>
@@ -145,9 +145,9 @@ export default function TeachersPage() {
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center gap-4">
                                                         {teacher.photoUrl ? (
-                                                            <img src={teacher.photoUrl} alt="" className="h-12 w-12 rounded-xl object-cover border border-white/5 group-hover:border-cyan-500/30 transition-all" />
+                                                            <img src={teacher.photoUrl} alt="" className="h-12 w-12 rounded-xl object-cover border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0" />
                                                         ) : (
-                                                            <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center text-cyan-400 font-black border border-white/5 group-hover:border-cyan-500/30 transition-all">
+                                                            <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center text-cyan-400 font-black border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0">
                                                                 {teacher.fullName?.charAt(0) || "?"}
                                                             </div>
                                                         )}
@@ -183,17 +183,17 @@ export default function TeachersPage() {
                                                     <div className="flex items-center justify-end gap-2 pr-2">
                                                         <button
                                                             onClick={() => inspectTeacher(teacher)}
-                                                            className="px-3.5 py-2 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-xl transition-all border border-white/5 font-black text-xs uppercase flex items-center gap-1.5 shadow-sm"
+                                                            className="px-3.5 py-2 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-xl transition-all border border-white/5 font-black text-xs uppercase flex items-center gap-1.5 shadow-sm flex-shrink-0"
                                                             title="Inspect Credentials & Documents"
                                                         >
                                                             <Eye size={15} /> Inspect Docs
                                                         </button>
                                                         <button
                                                             onClick={() => openChat(teacher.id, teacher.fullName || "Teacher")}
-                                                            className="p-2 text-zinc-300 hover:bg-zinc-800 rounded-xl transition-all border border-white/5"
+                                                            className="p-2 text-zinc-300 hover:bg-zinc-800 rounded-xl transition-all border border-white/5 flex-shrink-0"
                                                             title="Live Support Chat"
                                                         >
-                                                            <MessageSquare className="w-5 h-5" />
+                                                            <MessageSquare className="w-5 h-5 text-cyan-400" />
                                                         </button>
                                                     </div>
                                                 </td>
