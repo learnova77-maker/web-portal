@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Matoverse Dark & Cyan Theme */
+  --color-primary: #22d3ee;
+  /* Cyan-400 */
+  --color-primary-hover: #0891b2;
+  /* Cyan-600 */
+  --color-accent: #67e8f9;
+  /* Cyan-300 */
+  --color-bg-deep: #09090b;
+  /* Zinc-950 */
+  --color-bg-card: #18181b;
+  /* Zinc-900 */
+  --color-text-main: #fafafa;
+  --color-text-muted: #a1a1aa;
+}
+
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), sans-serif;
+  @apply antialiased;
+}
+
+/* Glassmorphism for Dark Theme */
+.glass-dark {
+  @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 shadow-2xl;
+}
+
+.cyan-glow {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+
+/* Custom Scrollbar for Dark Theme */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #22d3ee;
+}
