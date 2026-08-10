@@ -60,4 +60,17 @@ export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 
 export async function updateStatus(id: string, newStatus: string) {
     const userRef = ref(rtdb, `users/${id}`);
     await update(userRef, { status: newStatus });
+
+    // Notify backend API to ensure approval email & chat cleanup triggers reliably
+    try {
+        await fetch(`https://learnovaserver-production.up.railway.app/api/users/update/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus }),
+        });
+    } catch (err) {
+        console.warn('Could not notify backend of status update:', err);
+    }
 }

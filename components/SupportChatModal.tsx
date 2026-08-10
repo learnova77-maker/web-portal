@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ref, onValue, push, serverTimestamp, update } from "firebase/database";
+import { ref, onValue, push, serverTimestamp, update, get } from "firebase/database";
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { rtdb, storage } from "@/lib/firebase";
-import { X, Send, User, Bot, Check, CheckCheck, Image as ImageIcon, Loader2 } from "lucide-react";
+import { X, Send, User, Bot, Check, CheckCheck, Image as ImageIcon, Loader2, Eye, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
+import TeacherVerificationModal from "@/components/TeacherVerificationModal";
 
 interface Message {
     id: string;
@@ -30,8 +31,31 @@ export default function SupportChatModal({ isOpen, onClose, userId, userName, ch
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [uploading, setUploading] = useState(false);
+    const [inspectTeacher, setInspectTeacher] = useState<any | null>(null);
+    const [isInspectOpen, setIsInspectOpen] = useState(false);
+    const [loadingInspect, setLoadingInspect] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleInspectUser = async () => {
+        if (!userId) return;
+        setLoadingInspect(true);
+        try {
+            const userSnap = await get(ref(rtdb, `users/${userId}`));
+            if (userSnap.exists()) {
+                setInspectTeacher({ id: userId, ...userSnap.val() });
+            } else {
+                setInspectTeacher({ id: userId, fullName: userName });
+            }
+            setIsInspectOpen(true);
+        } catch (err) {
+            console.error("Error loading user profile for inspection:", err);
+            setInspectTeacher({ id: userId, fullName: userName });
+            setIsInspectOpen(true);
+        } finally {
+            setLoadingInspect(false);
+        }
+    };
 
     useEffect(() => {
         if (!isOpen || !userId) return;
@@ -124,24 +148,45 @@ export default function SupportChatModal({ isOpen, onClose, userId, userName, ch
             <div className="bg-zinc-900 border border-white/10 w-full max-w-2xl h-[80vh] rounded-[2.5rem] flex flex-col overflow-hidden shadow-2xl">
                 {/* Header */}
                 <div className="p-6 border-b border-white/5 flex items-center justify-between bg-zinc-900/50">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+                    <div 
+                        onClick={handleInspectUser}
+                        className="flex items-center gap-4 cursor-pointer group"
+                    >
+                        <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 group-hover:bg-cyan-500/20 transition-all">
                             <User className="w-6 h-6 text-cyan-500" />
                         </div>
                         <div>
-                            <h2 className="font-black text-white uppercase tracking-tight italic">Chat with {userName}</h2>
+                            <h2 className="font-black text-white uppercase tracking-tight italic group-hover:text-cyan-400 transition-colors flex items-center gap-2">
+                                Chat with {userName}
+                                <Eye className="w-4 h-4 text-cyan-500 opacity-80" />
+                            </h2>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Support Session Active</p>
+                                <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Support Session Active • Click to View Full Details</p>
                             </div>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-3 hover:bg-white/5 rounded-2xl transition-all text-zinc-500 hover:text-white"
-                    >
-                        <X className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={handleInspectUser}
+                            disabled={loadingInspect}
+                            className="px-4 py-2.5 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-2xl text-xs font-black text-cyan-400 uppercase tracking-wider flex items-center gap-2 transition-all"
+                        >
+                            {loadingInspect ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <ShieldCheck className="w-4 h-4" />
+                            )}
+                            <span>View Details & Docs</span>
+                        </button>
+                        <button
+                            onClick={onClose}
+                            className="p-3 hover:bg-white/5 rounded-2xl transition-all text-zinc-500 hover:text-white"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Messages Space */}
@@ -238,6 +283,13 @@ export default function SupportChatModal({ isOpen, onClose, userId, userName, ch
                     </div>
                 </form>
             </div>
+
+            {/* Teacher Details & Verification Inspection Modal */}
+            <TeacherVerificationModal
+                isOpen={isInspectOpen}
+                onClose={() => setIsInspectOpen(false)}
+                teacher={inspectTeacher}
+            />
         </div>
     );
 }

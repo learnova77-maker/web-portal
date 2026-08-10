@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import SupportChatModal from "@/components/SupportChatModal";
+import TeacherVerificationModal from "@/components/TeacherVerificationModal";
 import { rtdb } from "@/lib/firebase";
-import { ref, onValue, remove } from "firebase/database";
+import { ref, onValue, remove, get } from "firebase/database";
 import {
     MessageSquare,
     Search,
@@ -14,7 +15,9 @@ import {
     ShieldAlert,
     ChevronRight,
     MessageCircle,
-    Trash2
+    Trash2,
+    Eye,
+    ShieldCheck
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -35,6 +38,27 @@ export default function MessagesPage() {
     // Chat Modal State
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [selectedChat, setSelectedChat] = useState<ChatSummary | null>(null);
+
+    // Verification Modal Inspection State
+    const [inspectTeacher, setInspectTeacher] = useState<any | null>(null);
+    const [isInspectOpen, setIsInspectOpen] = useState(false);
+
+    const handleInspectUser = async (e: React.MouseEvent, userId: string, userName: string) => {
+        e.stopPropagation();
+        try {
+            const userSnap = await get(ref(rtdb, `users/${userId}`));
+            if (userSnap.exists()) {
+                setInspectTeacher({ id: userId, ...userSnap.val() });
+            } else {
+                setInspectTeacher({ id: userId, fullName: userName });
+            }
+            setIsInspectOpen(true);
+        } catch (err) {
+            console.error("Error fetching user details for inspection:", err);
+            setInspectTeacher({ id: userId, fullName: userName });
+            setIsInspectOpen(true);
+        }
+    };
 
     const handleDeleteChat = async (e: React.MouseEvent, chat: ChatSummary) => {
         e.stopPropagation();
@@ -184,7 +208,7 @@ export default function MessagesPage() {
                                         </p>
                                     </div>
 
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3">
                                         <div className="text-right">
                                             <div className="flex flex-col items-end gap-2">
                                                 <span className="text-[10px] text-zinc-500 font-black uppercase tracking-widest font-mono">
@@ -199,6 +223,14 @@ export default function MessagesPage() {
                                                 )}
                                             </div>
                                         </div>
+                                        <button
+                                            onClick={(e) => handleInspectUser(e, chat.userId, chat.userName)}
+                                            className="p-3 text-cyan-400/80 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-all border border-cyan-500/20 flex items-center gap-1.5 text-xs font-bold"
+                                            title="View Full User Details & Documents"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            <span className="hidden lg:inline uppercase text-[10px] font-black">Details</span>
+                                        </button>
                                         <button
                                             onClick={(e) => handleDeleteChat(e, chat)}
                                             className="p-3 text-zinc-700 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
@@ -224,6 +256,13 @@ export default function MessagesPage() {
                     chatType={selectedChat.type}
                 />
             )}
+
+            {/* Teacher Details Inspection Modal */}
+            <TeacherVerificationModal
+                isOpen={isInspectOpen}
+                onClose={() => setIsInspectOpen(false)}
+                teacher={inspectTeacher}
+            />
         </div>
     );
 }
