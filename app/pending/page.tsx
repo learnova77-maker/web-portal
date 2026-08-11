@@ -17,9 +17,12 @@ import {
     GraduationCap,
     BadgeCheck,
     X,
-    ExternalLink
+    ExternalLink,
+    LayoutGrid,
+    List
 } from "lucide-react";
 import { useFirebaseCollection, updateStatus } from "@/hooks/useFirebaseCollection";
+import DeclineReasonModal from "@/components/DeclineReasonModal";
 
 // Helper to safely extract string URL from strings or objects
 function resolveImageUrl(val: any): string | null {
@@ -43,6 +46,10 @@ export default function PendingApprovalsPage() {
     // Verification Inspection Modal State
     const [selectedTeacher, setSelectedTeacher] = useState<any | null>(null);
     const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+
+    // Decline Reason Modal State
+    const [declineTeacher, setDeclineTeacher] = useState<any | null>(null);
+    const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
 
     // Direct Image Lightbox State
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -70,6 +77,14 @@ export default function PendingApprovalsPage() {
         setImgErrors(prev => ({ ...prev, [key]: true }));
     };
 
+    const filteredPending = pending.filter(p =>
+        p.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.expertise?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.idNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.cnicNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="flex h-screen bg-zinc-950 text-white font-sans">
             <Sidebar />
@@ -90,9 +105,9 @@ export default function PendingApprovalsPage() {
                 </header>
 
                 <div className="p-8">
-                    {/* Controls */}
+                    {/* Controls & View Switcher */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                        <div className="relative flex-1">
+                        <div className="relative w-full max-w-2xl">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
                             <input
                                 type="text"
@@ -104,57 +119,43 @@ export default function PendingApprovalsPage() {
                         </div>
                     </div>
 
-                    {/* Table Container with Overflow X Auto */}
-                    <div className="bg-zinc-900 rounded-3xl border border-white/5 overflow-x-auto shadow-2xl min-w-full">
-                        <table className="w-full text-left whitespace-nowrap min-w-[1000px]">
-                            <thead className="bg-zinc-950 border-b border-white/5">
-                                <tr>
-                                    <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Applicant Info</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Verification Doc & Number</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Field / Degree Title</th>
-                                    <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Clickable Documents</th>
-                                    <th className="px-6 py-5 text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest pr-8">Approval Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {loading ? (
+                    {/* Main Content Area */}
+                    {loading ? (
+                        <div className="py-24 text-center text-zinc-500 font-bold italic animate-pulse">
+                            Scanning database for pending applications...
+                        </div>
+                    ) : error ? (
+                        <div className="py-20 text-center bg-zinc-900 border border-red-500/20 rounded-3xl p-8">
+                            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                            <p className="text-xl font-black text-white uppercase italic">Connection Error</p>
+                            <p className="text-zinc-500 font-medium italic mt-1">{error.message}</p>
+                        </div>
+                    ) : filteredPending.length === 0 ? (
+                        <div className="py-24 text-center bg-zinc-900 rounded-3xl border border-white/5 p-8">
+                            <div className="p-4 bg-emerald-500/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                                <ShieldCheck className="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <h3 className="text-lg font-black text-white uppercase italic tracking-tight">No Pending Applications</h3>
+                            <p className="text-zinc-500 font-medium italic text-xs mt-1">All teacher verification requests have been thoroughly reviewed!</p>
+                        </div>
+                    ) : (
+                        /* Table View */
+                        <div className="bg-zinc-900 rounded-3xl border border-white/5 shadow-2xl w-full">
+                            <table className="w-full text-left">
+                                <thead className="bg-zinc-950 border-b border-white/5">
                                     <tr>
-                                        <td colSpan={5} className="py-20 text-center text-zinc-500 font-bold italic">
-                                            Scanning database for pending applications...
-                                        </td>
+                                        <th className="w-[30%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Applicant Info</th>
+                                        <th className="w-[15%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Verification Doc</th>
+                                        <th className="w-[20%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Field / Degree Title</th>
+                                        <th className="w-[20%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Documents</th>
+                                        <th className="w-[15%] px-6 py-5 text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest pr-8">Actions</th>
                                     </tr>
-                                ) : error ? (
-                                    <tr>
-                                        <td colSpan={5} className="py-20 text-center">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <XCircle className="w-12 h-12 text-red-500" />
-                                                <p className="text-xl font-black text-white uppercase italic">Connection Error</p>
-                                                <p className="text-zinc-500 font-medium italic">{error.message}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : pending.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="py-20 text-center">
-                                            <div className="flex flex-col items-center gap-4">
-                                                <div className="p-4 bg-emerald-500/10 rounded-full">
-                                                    <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                                                </div>
-                                                <p className="text-zinc-400 font-bold italic text-sm">All pending teacher applications have been reviewed!</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    pending.filter(p =>
-                                        p.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        p.expertise?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        p.idNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        p.cnicNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-                                    ).map((teacher) => {
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {filteredPending.map((teacher) => {
                                         const docType = (teacher.idType || 'cnic').toUpperCase();
                                         const docNum = teacher.idNumber || teacher.cnicNumber || teacher.passportNumber || 'Not Provided';
-                                        
+
                                         const avatar = resolveImageUrl(
                                             teacher.photoUrl || teacher.photoURL || teacher.profileImage || teacher.picture || teacher.avatar || teacher.userImage || teacher.photo
                                         );
@@ -172,142 +173,137 @@ export default function PendingApprovalsPage() {
                                         );
 
                                         return (
-                                            <tr key={teacher.id} className="hover:bg-cyan-500/[0.02] transition-colors group">
+                                            <tr key={teacher.id} className="hover:bg-cyan-500/[0.02] transition-colors group cursor-pointer" onClick={() => inspectTeacher(teacher)}>
                                                 {/* Applicant Info */}
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center gap-4">
                                                         {avatar && !imgErrors[teacher.id + '_avatar'] ? (
-                                                            <img 
-                                                                src={avatar} 
-                                                                alt="" 
+                                                            <img
+                                                                src={avatar}
+                                                                alt=""
                                                                 onError={() => markImgError(teacher.id + '_avatar')}
                                                                 referrerPolicy="no-referrer"
-                                                                className="h-12 w-12 rounded-xl object-cover border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0" 
+                                                                className="h-12 w-12 rounded-xl object-cover border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0"
                                                             />
                                                         ) : (
                                                             <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center text-cyan-400 font-black border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0">
                                                                 {teacher.fullName?.charAt(0) || "T"}
                                                             </div>
                                                         )}
-                                                        <div>
-                                                            <p className="font-black text-white uppercase tracking-tight">{teacher.fullName}</p>
-                                                            <p className="text-xs text-zinc-500 font-mono">{teacher.email}</p>
+                                                        <div className="min-w-0">
+                                                            <p className="font-black text-white uppercase tracking-tight break-words">{teacher.fullName}</p>
+                                                            <p className="text-[11px] text-zinc-500 font-mono truncate" title={teacher.email}>{teacher.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 {/* Verification Doc & Number */}
                                                 <td className="px-6 py-5">
-                                                    <div className="space-y-1">
-                                                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                                                            {docType}
-                                                        </span>
-                                                        <p className="text-xs font-mono font-bold text-white tracking-wider pt-0.5">
-                                                            {docNum}
-                                                        </p>
+                                                    <div className="flex flex-col gap-1 min-w-0">
+                                                        <span className="text-[11px] font-black text-cyan-400 uppercase tracking-wider">{docType}</span>
+                                                        <span className="text-[11px] font-mono font-bold text-zinc-300 break-all">{docNum}</span>
                                                     </div>
                                                 </td>
 
                                                 {/* Field / Degree Title */}
                                                 <td className="px-6 py-5">
-                                                    <div className="space-y-1">
-                                                        <p className="text-xs font-black text-cyan-400 uppercase tracking-tight">{teacher.expertise || "N/A"}</p>
-                                                        <p className="text-[11px] text-zinc-400 font-medium truncate max-w-[180px]">{teacher.qualification || "No Degree Specified"}</p>
+                                                    <div className="flex flex-col gap-1 min-w-0">
+                                                        <span className="text-[11px] font-bold text-white uppercase tracking-tight break-words">{teacher.expertise || "Instructor"}</span>
+                                                        <span className="text-[10px] font-medium text-zinc-400 break-words">{teacher.qualificationTitle || "Pending Verification"}</span>
                                                     </div>
                                                 </td>
 
-                                                {/* Clickable Uploaded Files Badges */}
-                                                <td className="px-6 py-5">
+                                                {/* Clickable Documents */}
+                                                <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
                                                     <div className="flex items-center gap-2">
                                                         {frontUrl ? (
                                                             <button
                                                                 onClick={() => setLightboxImage(frontUrl)}
-                                                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-all flex items-center gap-1 cursor-pointer"
-                                                                title="Click to view Front Image"
+                                                                className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-cyan-500 hover:text-black font-bold text-xs transition-all border border-white/5"
                                                             >
-                                                                <Eye size={12} /> {docType === 'PASSPORT' ? 'PASSPORT' : 'FRONT'} ✓
+                                                                Front ID
                                                             </button>
                                                         ) : (
-                                                            <span className="text-[10px] font-bold px-2 py-1 rounded-lg border bg-zinc-800 text-zinc-600 border-white/5 cursor-not-allowed">
-                                                                {docType === 'PASSPORT' ? 'PASSPORT' : 'FRONT'} ✗
-                                                            </span>
+                                                            <span className="text-[10px] text-zinc-600 font-mono italic">No Front</span>
                                                         )}
 
-                                                        {docType === 'CNIC' && (
-                                                            backUrl ? (
-                                                                <button
-                                                                    onClick={() => setLightboxImage(backUrl)}
-                                                                    className="text-[10px] font-bold px-2.5 py-1 rounded-lg border bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20 transition-all flex items-center gap-1 cursor-pointer"
-                                                                    title="Click to view CNIC Back Image"
-                                                                >
-                                                                    <Eye size={12} /> BACK ✓
-                                                                </button>
-                                                            ) : (
-                                                                <span className="text-[10px] font-bold px-2 py-1 rounded-lg border bg-zinc-800 text-zinc-600 border-white/5 cursor-not-allowed">
-                                                                    BACK ✗
-                                                                </span>
-                                                            )
+                                                        {backUrl ? (
+                                                            <button
+                                                                onClick={() => setLightboxImage(backUrl)}
+                                                                className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-cyan-500 hover:text-black font-bold text-xs transition-all border border-white/5"
+                                                            >
+                                                                Back ID
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-[10px] text-zinc-600 font-mono italic">No Back</span>
                                                         )}
 
                                                         {degreeUrl ? (
                                                             <button
                                                                 onClick={() => setLightboxImage(degreeUrl)}
-                                                                className="text-[10px] font-bold px-2.5 py-1 rounded-lg border bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1 cursor-pointer"
-                                                                title="Click to view Degree Document"
+                                                                className="px-3 py-1.5 bg-amber-500/10 text-amber-400 rounded-xl hover:bg-amber-500 hover:text-black font-bold text-xs transition-all border border-amber-500/20"
                                                             >
-                                                                <Eye size={12} /> DEGREE ✓
+                                                                Degree
                                                             </button>
                                                         ) : (
-                                                            <span className="text-[10px] font-bold px-2 py-1 rounded-lg border bg-zinc-800 text-zinc-600 border-white/5 cursor-not-allowed">
-                                                                DEGREE ✗
-                                                            </span>
+                                                            <span className="text-[10px] text-zinc-600 font-mono italic">No Degree</span>
                                                         )}
                                                     </div>
                                                 </td>
 
-                                                {/* Approval Actions - Fully visible with flex-wrap / flex-shrink */}
-                                                <td className="px-6 py-5 text-right pr-6">
-                                                    <div className="flex items-center justify-end gap-2.5 min-w-[280px]">
+                                                {/* Actions */}
+                                                <td className="px-6 py-5 text-right pr-8 align-middle" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex flex-wrap items-center justify-end gap-2">
                                                         <button
                                                             onClick={() => inspectTeacher(teacher)}
-                                                            className="px-3 py-2 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-xl transition-all border border-white/5 font-black text-xs uppercase flex items-center gap-1 shadow-sm flex-shrink-0"
+                                                            className="px-2.5 py-1.5 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-lg transition-all border border-white/5 font-black text-[10px] uppercase flex items-center gap-1 shadow-sm flex-shrink-0"
                                                             title="Inspect CNIC, Passport & Degree details"
                                                         >
-                                                            <Eye size={14} /> Review
+                                                            <Eye size={12} /> Review
                                                         </button>
 
                                                         <button
                                                             onClick={() => openChat(teacher.id, teacher.fullName || "Teacher")}
-                                                            className="p-2.5 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-zinc-700 transition-all border border-white/5 flex-shrink-0"
+                                                            className="p-1.5 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all border border-white/5 flex-shrink-0"
                                                             title="Live Chat Support"
                                                         >
-                                                            <MessageSquare className="w-4 h-4 text-cyan-400" />
+                                                            <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
                                                         </button>
 
                                                         <button
-                                                            onClick={() => handleAction(teacher.id, 'rejected')}
-                                                            className="px-3.5 py-2 bg-zinc-950 text-red-400 border border-red-500/20 rounded-xl hover:bg-red-950 hover:text-red-300 transition-all font-black uppercase text-[10px] tracking-widest flex-shrink-0"
+                                                            onClick={() => {
+                                                                setDeclineTeacher(teacher);
+                                                                setIsDeclineModalOpen(true);
+                                                            }}
+                                                            className="px-3 py-1.5 bg-zinc-950 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-950 hover:text-red-300 transition-all font-black uppercase text-[10px] tracking-widest flex-shrink-0"
                                                         >
                                                             Decline
                                                         </button>
 
                                                         <button
                                                             onClick={() => handleAction(teacher.id, 'active')}
-                                                            className="px-4 py-2 bg-cyan-500 text-black rounded-xl hover:bg-cyan-400 transition-all font-black uppercase text-[10px] tracking-widest shadow-lg shadow-cyan-500/10 flex items-center gap-1 flex-shrink-0"
+                                                            className="px-3 py-1.5 bg-cyan-500 text-black rounded-lg hover:bg-cyan-400 transition-all font-black uppercase text-[10px] tracking-widest shadow-lg shadow-cyan-500/10 flex items-center gap-1 flex-shrink-0"
                                                         >
-                                                            <CheckCircle2 size={14} /> Approve
+                                                            <CheckCircle2 size={12} /> Approve
                                                         </button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </main>
+
+            {/* Decline Reason Modal */}
+            <DeclineReasonModal
+                isOpen={isDeclineModalOpen}
+                onClose={() => setIsDeclineModalOpen(false)}
+                teacher={declineTeacher}
+            />
 
             {/* Inspection Modal */}
             {selectedTeacher && (

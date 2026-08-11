@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { ref, onValue, update, orderByKey, query as rtdbQuery } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 
-export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 'users' = 'users', filterStatus?: string) {
+export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 'users' | 'blogs' = 'users', filterStatus?: string) {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<any>(null);
@@ -11,19 +11,18 @@ export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 
     useEffect(() => {
         if (!rtdb) return;
 
-        // Path to your users node
-        const usersRef = ref(rtdb, 'users');
-        const q = rtdbQuery(usersRef, orderByKey());
+        // Path to your node based on type
+        const nodePath = type === 'blogs' ? 'blogs' : 'users';
+        const dataRef = ref(rtdb, nodePath);
+        const q = rtdbQuery(dataRef, orderByKey());
 
         const unsubscribe = onValue(q, (snapshot) => {
             const val = snapshot.val();
-            console.log("RTDB Raw Value:", val);
             if (val) {
                 const items = Object.entries(val).map(([id, details]: [string, any]) => ({
                     id,
                     ...details
                 }));
-                console.log("RTDB Parsed Items:", items);
 
                 // Filter logic based on the requested 'type' and 'role'
                 let filtered = items;

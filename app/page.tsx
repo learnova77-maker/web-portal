@@ -15,9 +15,10 @@ import {
 import { useFirebaseCollection } from "@/hooks/useFirebaseCollection";
 
 export default function Dashboard() {
-  const { data: teachers } = useFirebaseCollection("teacher");
-  const { data: students } = useFirebaseCollection("student");
-  const { data: pending } = useFirebaseCollection("pending");
+  const { data: allUsers } = useFirebaseCollection("users");
+  const teachers = allUsers.filter(u => u.role === 'teacher' && (u.status === 'approved' || u.status === 'active'));
+  const students = allUsers.filter(u => u.role === 'student');
+  const pending = allUsers.filter(u => u.role === 'teacher' && u.status === 'pending');
 
   const stats = [
     { name: "Total Teachers", value: teachers.length.toString(), icon: Users2, color: "indigo", delta: "+12%" },

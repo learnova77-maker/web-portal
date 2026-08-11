@@ -18,7 +18,8 @@ import {
     MessageSquare,
     Star,
     X,
-    BellRing
+    BellRing,
+    FileText
 } from "lucide-react";
 
 const navigation = [
@@ -29,6 +30,7 @@ const navigation = [
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Reviews", href: "/reviews", icon: Star },
     { name: "Courses", href: "/courses", icon: BookOpen },
+    { name: "Manage Blogs", href: "/blogs", icon: FileText },
 ];
 
 export default function Sidebar() {
@@ -79,7 +81,8 @@ export default function Sidebar() {
                     if (latest && latest.sender === "user") {
                         const key = `${type}_${userId}`;
                         const prevTime = prevMessageTimestamps.current[key] || 0;
-                        if (!initialLoadRef.current && latest.createdAt && latest.createdAt > prevTime && !latest.read) {
+                        const msgTime = Number(latest.createdAt || 0);
+                        if (!initialLoadRef.current && msgTime > 0 && prevTime > 0 && msgTime > prevTime && !latest.read) {
                             setLatestNotification({
                                 userId,
                                 userName: latest.userName || "Teacher / User",
@@ -87,7 +90,9 @@ export default function Sidebar() {
                                 chatType: type
                             });
                         }
-                        prevMessageTimestamps.current[key] = latest.createdAt || Date.now();
+                        if (msgTime > 0) {
+                            prevMessageTimestamps.current[key] = msgTime;
+                        }
                     }
                 });
             }

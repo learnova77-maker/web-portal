@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { updateStatus } from "@/hooks/useFirebaseCollection";
 
+import DeclineReasonModal from "@/components/DeclineReasonModal";
+
 interface TeacherVerificationModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -49,6 +51,7 @@ export default function TeacherVerificationModal({
     const [lightboxImage, setLightboxImage] = useState<string | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [imgErrors, setImgErrors] = useState<{ [key: string]: boolean }>({});
+    const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
 
     if (!isOpen || !teacher) return null;
 
@@ -93,19 +96,8 @@ export default function TeacherVerificationModal({
         }
     };
 
-    const handleReject = async () => {
-        if (confirm(`Are you sure you want to decline ${teacher.fullName || "this teacher"}?`)) {
-            setIsUpdating(true);
-            try {
-                await updateStatus(teacher.id, "rejected");
-                onClose();
-            } catch (err) {
-                console.error("Failed to reject teacher:", err);
-                alert("Error declining teacher.");
-            } finally {
-                setIsUpdating(false);
-            }
-        }
+    const handleReject = () => {
+        setIsDeclineModalOpen(true);
     };
 
     const markImgError = (key: string) => {
@@ -480,6 +472,14 @@ export default function TeacherVerificationModal({
                     </div>
                 </div>
             )}
+
+            {/* Decline Reason Modal */}
+            <DeclineReasonModal
+                isOpen={isDeclineModalOpen}
+                onClose={() => setIsDeclineModalOpen(false)}
+                teacher={teacher}
+                onSuccess={onClose}
+            />
         </div>
     );
 }
