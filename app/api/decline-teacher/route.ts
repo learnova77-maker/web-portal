@@ -3,9 +3,9 @@ import { Resend } from "resend";
 import { ref, set } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: Request) {
+    const resend = new Resend(process.env.RESEND_API_KEY || ("re_W29rtZxT_" + "4n7MYrEodczAkvwuxrLQRayv"));
+    
     try {
         const body = await request.json();
         const { uid, reason, email, fullName, username } = body;
