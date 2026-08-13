@@ -19,7 +19,8 @@ import {
     X,
     ExternalLink,
     LayoutGrid,
-    List
+    List,
+    Phone
 } from "lucide-react";
 import { useFirebaseCollection, updateStatus } from "@/hooks/useFirebaseCollection";
 import DeclineReasonModal from "@/components/DeclineReasonModal";
@@ -80,6 +81,8 @@ export default function PendingApprovalsPage() {
     const filteredPending = pending.filter(p =>
         p.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.whatsapp?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.whatsappNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.expertise?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.idNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.cnicNumber?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -140,21 +143,23 @@ export default function PendingApprovalsPage() {
                         </div>
                     ) : (
                         /* Table View */
-                        <div className="bg-zinc-900 rounded-3xl border border-white/5 shadow-2xl w-full">
-                            <table className="w-full text-left">
+                        <div className="bg-zinc-900 rounded-3xl border border-white/5 shadow-2xl w-full overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap min-w-[950px]">
                                 <thead className="bg-zinc-950 border-b border-white/5">
                                     <tr>
-                                        <th className="w-[30%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Applicant Info</th>
-                                        <th className="w-[15%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Verification Doc</th>
-                                        <th className="w-[20%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Field / Degree Title</th>
-                                        <th className="w-[20%] px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Documents</th>
-                                        <th className="w-[15%] px-6 py-5 text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest pr-8">Actions</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Applicant Info</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">WhatsApp Contact</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Verification Doc</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Field / Degree Title</th>
+                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Documents</th>
+                                        <th className="px-6 py-5 text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest pr-8">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {filteredPending.map((teacher) => {
                                         const docType = (teacher.idType || 'cnic').toUpperCase();
                                         const docNum = teacher.idNumber || teacher.cnicNumber || teacher.passportNumber || 'Not Provided';
+                                        const whatsappNo = teacher.whatsapp || teacher.whatsappNumber || '';
 
                                         const avatar = resolveImageUrl(
                                             teacher.photoUrl || teacher.photoURL || teacher.profileImage || teacher.picture || teacher.avatar || teacher.userImage || teacher.photo
@@ -195,6 +200,22 @@ export default function PendingApprovalsPage() {
                                                             <p className="text-[11px] text-zinc-500 font-mono truncate" title={teacher.email}>{teacher.email}</p>
                                                         </div>
                                                     </div>
+                                                </td>
+
+                                                {/* WhatsApp Contact */}
+                                                <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
+                                                    {whatsappNo ? (
+                                                        <a
+                                                            href={`https://wa.me/${whatsappNo.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(teacher.fullName || 'Teacher')},%20regarding%20your%20Matloverse%20verification.`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-mono font-bold transition-all shadow-sm"
+                                                        >
+                                                            <Phone size={13} /> {whatsappNo}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-xs text-zinc-600 font-mono">Not Provided</span>
+                                                    )}
                                                 </td>
 
                                                 {/* Verification Doc & Number */}

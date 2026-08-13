@@ -15,7 +15,8 @@ import {
     UserPlus,
     Database,
     MessageSquare,
-    Eye
+    Eye,
+    Phone
 } from "lucide-react";
 import { seedSampleData } from "@/lib/seedData";
 import { useFirebaseCollection, updateStatus } from "@/hooks/useFirebaseCollection";
@@ -91,10 +92,11 @@ export default function TeachersPage() {
 
                     {/* Table Container with Overflow X Auto */}
                     <div className="bg-zinc-900 rounded-3xl border border-white/5 overflow-x-auto shadow-2xl min-w-full">
-                        <table className="w-full text-left whitespace-nowrap min-w-[900px]">
+                        <table className="w-full text-left whitespace-nowrap min-w-[950px]">
                             <thead className="bg-zinc-950 border-b border-white/5">
                                 <tr>
                                     <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Teacher Info</th>
+                                    <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">WhatsApp Contact</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">CNIC / ID Number</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Subject / Expertise</th>
                                     <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Status</th>
@@ -104,13 +106,13 @@ export default function TeachersPage() {
                             <tbody className="divide-y divide-white/5">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="py-20 text-center text-zinc-500 font-bold italic">
+                                        <td colSpan={6} className="py-20 text-center text-zinc-500 font-bold italic">
                                             Fetching Teachers...
                                         </td>
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={5} className="py-20 text-center">
+                                        <td colSpan={6} className="py-20 text-center">
                                             <div className="flex flex-col items-center gap-4">
                                                 <XCircle className="w-12 h-12 text-red-500" />
                                                 <p className="text-xl font-black text-white uppercase italic">Connection Error</p>
@@ -120,7 +122,7 @@ export default function TeachersPage() {
                                     </tr>
                                 ) : teachers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="py-20 text-center">
+                                        <td colSpan={6} className="py-20 text-center">
                                             <div className="flex flex-col items-center gap-4">
                                                 <div className="p-4 bg-zinc-800 rounded-full mb-2">
                                                     <Search className="w-8 h-8 text-zinc-600" />
@@ -134,11 +136,14 @@ export default function TeachersPage() {
                                         t.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                         t.expertise?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                         t.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        t.whatsapp?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        t.whatsappNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                         t.idNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                         t.cnicNumber?.toLowerCase().includes(searchTerm.toLowerCase())
                                     ).map((teacher) => {
                                         const docType = (teacher.idType || 'cnic').toUpperCase();
                                         const docNum = teacher.idNumber || teacher.cnicNumber || teacher.passportNumber || 'N/A';
+                                        const whatsappNo = teacher.whatsapp || teacher.whatsappNumber || '';
 
                                         return (
                                             <tr key={teacher.id} className="hover:bg-cyan-500/[0.02] transition-colors group">
@@ -156,6 +161,21 @@ export default function TeachersPage() {
                                                             <p className="text-xs text-zinc-500 font-mono tracking-tighter">{teacher.email}</p>
                                                         </div>
                                                     </div>
+                                                </td>
+
+                                                <td className="px-6 py-5">
+                                                    {whatsappNo ? (
+                                                        <a
+                                                            href={`https://wa.me/${whatsappNo.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(teacher.fullName || 'Teacher')},%20regarding%20your%20Matloverse%20account.`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-mono font-bold transition-all shadow-sm"
+                                                        >
+                                                            <Phone size={13} /> {whatsappNo}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-xs text-zinc-600 font-mono">Not Provided</span>
+                                                    )}
                                                 </td>
 
                                                 <td className="px-6 py-5">
