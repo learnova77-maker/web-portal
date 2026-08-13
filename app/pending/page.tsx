@@ -143,16 +143,16 @@ export default function PendingApprovalsPage() {
                         </div>
                     ) : (
                         /* Table View */
-                        <div className="bg-zinc-900 rounded-3xl border border-white/5 shadow-2xl w-full overflow-x-auto">
-                            <table className="w-full text-left whitespace-nowrap min-w-[950px]">
+                        <div className="bg-zinc-900 rounded-3xl border border-white/5 shadow-2xl w-full overflow-hidden">
+                            <table className="w-full text-left">
                                 <thead className="bg-zinc-950 border-b border-white/5">
                                     <tr>
-                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Applicant Info</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">WhatsApp Contact</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Verification Doc</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Field / Degree Title</th>
-                                        <th className="px-6 py-5 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Documents</th>
-                                        <th className="px-6 py-5 text-right text-[10px] font-black text-zinc-500 uppercase tracking-widest pr-8">Actions</th>
+                                        <th className="px-4 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Applicant</th>
+                                        <th className="px-3 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-wider">WhatsApp</th>
+                                        <th className="px-3 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-wider">ID Doc</th>
+                                        <th className="px-3 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Field / Qualification</th>
+                                        <th className="px-3 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-wider">Attached Docs</th>
+                                        <th className="px-4 py-4 text-right text-[10px] font-black text-zinc-500 uppercase tracking-wider pr-6">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
@@ -180,104 +180,104 @@ export default function PendingApprovalsPage() {
                                         return (
                                             <tr key={teacher.id} className="hover:bg-cyan-500/[0.02] transition-colors group cursor-pointer" onClick={() => inspectTeacher(teacher)}>
                                                 {/* Applicant Info */}
-                                                <td className="px-6 py-5">
-                                                    <div className="flex items-center gap-4">
+                                                <td className="px-4 py-3.5">
+                                                    <div className="flex items-center gap-3">
                                                         {avatar && !imgErrors[teacher.id + '_avatar'] ? (
                                                             <img
                                                                 src={avatar}
                                                                 alt=""
                                                                 onError={() => markImgError(teacher.id + '_avatar')}
                                                                 referrerPolicy="no-referrer"
-                                                                className="h-12 w-12 rounded-xl object-cover border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0"
+                                                                className="h-10 w-10 rounded-xl object-cover border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0"
                                                             />
                                                         ) : (
-                                                            <div className="h-12 w-12 rounded-xl bg-zinc-800 flex items-center justify-center text-cyan-400 font-black border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0">
+                                                            <div className="h-10 w-10 rounded-xl bg-zinc-800 flex items-center justify-center text-cyan-400 font-black text-xs border border-white/5 group-hover:border-cyan-500/30 transition-all flex-shrink-0">
                                                                 {teacher.fullName?.charAt(0) || "T"}
                                                             </div>
                                                         )}
-                                                        <div className="min-w-0">
-                                                            <p className="font-black text-white uppercase tracking-tight break-words">{teacher.fullName}</p>
-                                                            <p className="text-[11px] text-zinc-500 font-mono truncate" title={teacher.email}>{teacher.email}</p>
+                                                        <div className="min-w-0 max-w-[150px]">
+                                                            <p className="font-black text-white text-xs uppercase tracking-tight truncate">{teacher.fullName}</p>
+                                                            <p className="text-[10px] text-zinc-500 font-mono truncate" title={teacher.email}>{teacher.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
 
                                                 {/* WhatsApp Contact */}
-                                                <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
+                                                <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
                                                     {whatsappNo ? (
                                                         <a
                                                             href={`https://wa.me/${whatsappNo.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(teacher.fullName || 'Teacher')},%20regarding%20your%20Matloverse%20verification.`}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-mono font-bold transition-all shadow-sm"
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-[11px] font-mono font-bold transition-all shadow-sm"
                                                         >
-                                                            <Phone size={13} /> {whatsappNo}
+                                                            <Phone size={12} /> {whatsappNo}
                                                         </a>
                                                     ) : (
-                                                        <span className="text-xs text-zinc-600 font-mono">Not Provided</span>
+                                                        <span className="text-[11px] text-zinc-600 font-mono">N/A</span>
                                                     )}
                                                 </td>
 
                                                 {/* Verification Doc & Number */}
-                                                <td className="px-6 py-5">
-                                                    <div className="flex flex-col gap-1 min-w-0">
-                                                        <span className="text-[11px] font-black text-cyan-400 uppercase tracking-wider">{docType}</span>
-                                                        <span className="text-[11px] font-mono font-bold text-zinc-300 break-all">{docNum}</span>
+                                                <td className="px-3 py-3.5">
+                                                    <div className="flex flex-col gap-0.5 min-w-0 max-w-[120px]">
+                                                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">{docType}</span>
+                                                        <span className="text-[10px] font-mono font-bold text-zinc-300 truncate" title={docNum}>{docNum}</span>
                                                     </div>
                                                 </td>
 
                                                 {/* Field / Degree Title */}
-                                                <td className="px-6 py-5">
-                                                    <div className="flex flex-col gap-1 min-w-0">
-                                                        <span className="text-[11px] font-bold text-white uppercase tracking-tight break-words">{teacher.expertise || "Instructor"}</span>
-                                                        <span className="text-[10px] font-medium text-zinc-400 break-words">{teacher.qualificationTitle || "Pending Verification"}</span>
+                                                <td className="px-3 py-3.5">
+                                                    <div className="flex flex-col gap-0.5 min-w-0 max-w-[130px]">
+                                                        <span className="text-[11px] font-bold text-white uppercase tracking-tight truncate">{teacher.expertise || "Instructor"}</span>
+                                                        <span className="text-[10px] font-medium text-zinc-400 truncate">{teacher.qualificationTitle || "Pending"}</span>
                                                     </div>
                                                 </td>
 
                                                 {/* Clickable Documents */}
-                                                <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="flex items-center gap-2">
+                                                <td className="px-3 py-3.5" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
                                                         {frontUrl ? (
                                                             <button
                                                                 onClick={() => setLightboxImage(frontUrl)}
-                                                                className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-cyan-500 hover:text-black font-bold text-xs transition-all border border-white/5"
+                                                                className="px-2 py-1 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-cyan-500 hover:text-black font-bold text-[10px] transition-all border border-white/5"
                                                             >
-                                                                Front ID
+                                                                Front
                                                             </button>
                                                         ) : (
-                                                            <span className="text-[10px] text-zinc-600 font-mono italic">No Front</span>
+                                                            <span className="text-[9px] text-zinc-600 font-mono italic">No Front</span>
                                                         )}
 
                                                         {backUrl ? (
                                                             <button
                                                                 onClick={() => setLightboxImage(backUrl)}
-                                                                className="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded-xl hover:bg-cyan-500 hover:text-black font-bold text-xs transition-all border border-white/5"
+                                                                className="px-2 py-1 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-cyan-500 hover:text-black font-bold text-[10px] transition-all border border-white/5"
                                                             >
-                                                                Back ID
+                                                                Back
                                                             </button>
                                                         ) : (
-                                                            <span className="text-[10px] text-zinc-600 font-mono italic">No Back</span>
+                                                            <span className="text-[9px] text-zinc-600 font-mono italic">No Back</span>
                                                         )}
 
                                                         {degreeUrl ? (
                                                             <button
                                                                 onClick={() => setLightboxImage(degreeUrl)}
-                                                                className="px-3 py-1.5 bg-amber-500/10 text-amber-400 rounded-xl hover:bg-amber-500 hover:text-black font-bold text-xs transition-all border border-amber-500/20"
+                                                                className="px-2 py-1 bg-amber-500/10 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-black font-bold text-[10px] transition-all border border-amber-500/20"
                                                             >
                                                                 Degree
                                                             </button>
                                                         ) : (
-                                                            <span className="text-[10px] text-zinc-600 font-mono italic">No Degree</span>
+                                                            <span className="text-[9px] text-zinc-600 font-mono italic">No Degree</span>
                                                         )}
                                                     </div>
                                                 </td>
 
                                                 {/* Actions */}
-                                                <td className="px-6 py-5 text-right pr-8 align-middle" onClick={(e) => e.stopPropagation()}>
-                                                    <div className="flex flex-wrap items-center justify-end gap-2">
+                                                <td className="px-4 py-3.5 text-right pr-6 align-middle" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex items-center justify-end gap-1.5">
                                                         <button
                                                             onClick={() => inspectTeacher(teacher)}
-                                                            className="px-2.5 py-1.5 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-lg transition-all border border-white/5 font-black text-[10px] uppercase flex items-center gap-1 shadow-sm flex-shrink-0"
+                                                            className="px-2 py-1 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-lg transition-all border border-white/5 font-black text-[10px] uppercase flex items-center gap-1 shadow-sm flex-shrink-0"
                                                             title="Inspect CNIC, Passport & Degree details"
                                                         >
                                                             <Eye size={12} /> Review
@@ -285,7 +285,7 @@ export default function PendingApprovalsPage() {
 
                                                         <button
                                                             onClick={() => openChat(teacher.id, teacher.fullName || "Teacher")}
-                                                            className="p-1.5 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all border border-white/5 flex-shrink-0"
+                                                            className="p-1 bg-zinc-800 text-zinc-300 rounded-lg hover:bg-zinc-700 transition-all border border-white/5 flex-shrink-0"
                                                             title="Live Chat Support"
                                                         >
                                                             <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
@@ -296,14 +296,14 @@ export default function PendingApprovalsPage() {
                                                                 setDeclineTeacher(teacher);
                                                                 setIsDeclineModalOpen(true);
                                                             }}
-                                                            className="px-3 py-1.5 bg-zinc-950 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-950 hover:text-red-300 transition-all font-black uppercase text-[10px] tracking-widest flex-shrink-0"
+                                                            className="px-2 py-1 bg-zinc-950 text-red-400 border border-red-500/20 rounded-lg hover:bg-red-950 hover:text-red-300 transition-all font-black uppercase text-[10px] tracking-widest flex-shrink-0"
                                                         >
                                                             Decline
                                                         </button>
 
                                                         <button
-                                                            onClick={() => handleAction(teacher.id, 'active')}
-                                                            className="px-3 py-1.5 bg-cyan-500 text-black rounded-lg hover:bg-cyan-400 transition-all font-black uppercase text-[10px] tracking-widest shadow-lg shadow-cyan-500/10 flex items-center gap-1 flex-shrink-0"
+                                                            onClick={() => handleAction(teacher.id, "active")}
+                                                            className="px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 text-black font-black uppercase text-[10px] tracking-wider rounded-lg transition-all shadow-md flex items-center gap-1 flex-shrink-0"
                                                         >
                                                             <CheckCircle2 size={12} /> Approve
                                                         </button>

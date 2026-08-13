@@ -146,7 +146,7 @@ export default function TeachersPage() {
                                         const whatsappNo = teacher.whatsapp || teacher.whatsappNumber || '';
 
                                         return (
-                                            <tr key={teacher.id} className="hover:bg-cyan-500/[0.02] transition-colors group">
+                                            <tr key={teacher.id} className="hover:bg-cyan-500/[0.02] transition-colors group cursor-pointer" onClick={() => inspectTeacher(teacher)}>
                                                 <td className="px-6 py-5">
                                                     <div className="flex items-center gap-4">
                                                         {teacher.photoUrl ? (
@@ -163,7 +163,7 @@ export default function TeachersPage() {
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-5">
+                                                <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
                                                     {whatsappNo ? (
                                                         <a
                                                             href={`https://wa.me/${whatsappNo.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(teacher.fullName || 'Teacher')},%20regarding%20your%20Matloverse%20account.`}
@@ -199,14 +199,14 @@ export default function TeachersPage() {
                                                     </span>
                                                 </td>
 
-                                                <td className="px-6 py-5 text-right">
+                                                <td className="px-6 py-5 text-right" onClick={(e) => e.stopPropagation()}>
                                                     <div className="flex items-center justify-end gap-2 pr-2">
                                                         <button
                                                             onClick={() => inspectTeacher(teacher)}
                                                             className="px-3.5 py-2 bg-zinc-800 text-cyan-400 hover:bg-cyan-500 hover:text-black rounded-xl transition-all border border-white/5 font-black text-xs uppercase flex items-center gap-1.5 shadow-sm flex-shrink-0"
-                                                            title="Inspect Credentials & Documents"
+                                                            title="Inspect Credentials, Documents & Activity Log"
                                                         >
-                                                            <Eye size={15} /> Inspect Docs
+                                                            <Eye size={15} /> Inspect & Activities
                                                         </button>
                                                         <button
                                                             onClick={() => openChat(teacher.id, teacher.fullName || "Teacher")}

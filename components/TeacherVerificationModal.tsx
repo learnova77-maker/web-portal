@@ -77,14 +77,13 @@ export default function TeacherVerificationModal({
     });
 
     useEffect(() => {
-        if (isOpen && teacher?.id) {
+        if (isOpen && teacher) {
             fetchTeacherActivities();
         }
-    }, [isOpen, teacher?.id]);
+    }, [isOpen, teacher]);
 
     const fetchTeacherActivities = async () => {
-        const targetUid = teacher.id || teacher.uid;
-        if (!targetUid) return;
+        if (!teacher) return;
         setIsLoadingActivity(true);
 
         try {
@@ -95,13 +94,45 @@ export default function TeacherVerificationModal({
             let courseCounter = 0;
             let reviewCounter = 0;
 
+            const idsToMatch = new Set<string>();
+            if (teacher.id) idsToMatch.add(String(teacher.id));
+            if (teacher.uid) idsToMatch.add(String(teacher.uid));
+            if (teacher.email) idsToMatch.add(String(teacher.email).toLowerCase());
+            if (teacher.username) idsToMatch.add(String(teacher.username).toLowerCase());
+
+            // Try resolving UID from 'users' node if teacher only has a database key
+            try {
+                const usersSnap = await get(ref(rtdb, 'users'));
+                if (usersSnap.exists()) {
+                    const allUsers = usersSnap.val();
+                    Object.keys(allUsers).forEach(uKey => {
+                        const uVal = allUsers[uKey];
+                        if (
+                            uKey === teacher.id || 
+                            uVal.uid === teacher.id || 
+                            (uVal.email && teacher.email && uVal.email.toLowerCase() === teacher.email.toLowerCase())
+                        ) {
+                            if (uKey) idsToMatch.add(String(uKey));
+                            if (uVal.uid) idsToMatch.add(String(uVal.uid));
+                            if (uVal.email) idsToMatch.add(String(uVal.email).toLowerCase());
+                        }
+                    });
+                }
+            } catch (e) {}
+
             // 1. Fetch Likes & Comments from social_posts
             const postsSnap = await get(ref(rtdb, 'social_posts'));
             if (postsSnap.exists()) {
                 const allPosts = postsSnap.val();
                 Object.keys(allPosts).forEach((pId) => {
                     const post = allPosts[pId];
-                    if (post.likes && post.likes[targetUid]) {
+                    
+                    // Check Likes
+                    let isLiked = false;
+                    if (post.likes) {
+                        isLiked = Object.keys(post.likes).some(k => idsToMatch.has(String(k)) && post.likes[k]);
+                    }
+                    if (isLiked) {
                         likesCounter++;
                         activities.push({
                             id: `like_${pId}`,
@@ -111,10 +142,20 @@ export default function TeacherVerificationModal({
                             timestamp: post.createdAt || Date.now()
                         });
                     }
+
+                    // Check Comments
                     if (post.comments) {
                         Object.keys(post.comments).forEach((cId) => {
                             const comment = post.comments[cId];
-                            if (comment.userId === targetUid || comment.studentId === targetUid) {
+                            const cUid = comment.userId || comment.studentId || '';
+                            const cEmail = (comment.userEmail || '').toLowerCase();
+                            const cName = (comment.userName || '').toLowerCase();
+
+                            if (
+                                (cUid && idsToMatch.has(String(cUid))) ||
+                                (cEmail && idsToMatch.has(cEmail)) ||
+                                (teacher.fullName && cName && cName === teacher.fullName.toLowerCase())
+                            ) {
                                 commentsCounter++;
                                 activities.push({
                                     id: `comment_${cId}`,
@@ -135,7 +176,17 @@ export default function TeacherVerificationModal({
                 const allCourses = coursesSnap.val();
                 Object.keys(allCourses).forEach((cId) => {
                     const course = allCourses[cId];
-                    if (course.instructorId === targetUid || course.userId === targetUid) {
+                    const instId = course.instructorId || course.userId || '';
+                    const instEmail = (course.instructorEmail || '').toLowerCase();
+                    const teacherName = (course.teacherName || '').toLowerCase();
+
+                    const isMatch = (
+                        (instId && idsToMatch.has(String(instId))) ||
+                        (instEmail && idsToMatch.has(instEmail)) ||
+                        (teacher.fullName && teacherName && teacherName === teacher.fullName.toLowerCase())
+                    );
+
+                    if (isMatch) {
                         courseCounter++;
                         if (course.reviews) {
                             reviewCounter += Object.keys(course.reviews).length;
