@@ -45,6 +45,10 @@ export default function Sidebar() {
         text: string;
         chatType: "support_chats" | "approval_chats";
     } | null>(null);
+    const [latestAdminNotification, setLatestAdminNotification] = useState<{
+        title: string;
+        message: string;
+    } | null>(null);
     const [activeChatUser, setActiveChatUser] = useState<{
         userId: string;
         userName: string;
@@ -111,9 +115,35 @@ export default function Sidebar() {
             initialLoadRef.current = false;
         });
 
+        const adminNotifRef = ref(rtdb, "admin_notifications");
+        const unsubAdminNotif = onValue(adminNotifRef, (snapshot) => {
+            if (initialLoadRef.current) return; // Prevent toasts on mount
+            const data = snapshot.val();
+            if (!data) return;
+            
+            const entries = Object.entries(data) as [string, any][];
+            const sorted = entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+            const latest = sorted[0];
+            if (latest && latest[1]) {
+                const key = `admin_notif`;
+                const prevTime = prevMessageTimestamps.current[key] || 0;
+                const msgTime = Number(latest[1].timestamp || 0);
+                if (msgTime > 0 && prevTime > 0 && msgTime > prevTime && !latest[1].isRead) {
+                    setLatestAdminNotification({
+                        title: latest[1].title,
+                        message: latest[1].message
+                    });
+                }
+                if (msgTime > 0) {
+                    prevMessageTimestamps.current[key] = msgTime;
+                }
+            }
+        });
+
         return () => {
             unsubSupport();
             unsubApproval();
+            unsubAdminNotif();
         };
     }, []);
 
@@ -154,6 +184,33 @@ export default function Sidebar() {
                             >
                                 Open Chat & Details →
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Realtime Toast Notification for Admin System Alerts (e.g., Warnings) */}
+            {latestAdminNotification && (
+                <div className="fixed top-24 right-6 z-50 animate-in slide-in-from-right-4 duration-300">
+                    <div className="bg-zinc-900 border border-yellow-500/40 p-4 rounded-2xl shadow-[0_0_30px_rgba(234,179,8,0.3)] max-w-sm flex items-start gap-3 text-white backdrop-blur-md">
+                        <div className="p-2.5 bg-yellow-500/20 text-yellow-500 rounded-xl shrink-0 mt-0.5 animate-pulse">
+                            <BellRing className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                                <h4 className="font-black text-xs text-yellow-500 uppercase tracking-wider truncate">
+                                    {latestAdminNotification.title}
+                                </h4>
+                                <button
+                                    onClick={() => setLatestAdminNotification(null)}
+                                    className="text-zinc-500 hover:text-white"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <p className="text-xs text-zinc-300 font-medium mt-1 italic">
+                                "{latestAdminNotification.message}"
+                            </p>
                         </div>
                     </div>
                 </div>

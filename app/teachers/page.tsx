@@ -212,7 +212,7 @@ export default function TeachersPage() {
                                                         </span>
                                                         {teacher.hasRescheduledLives && (
                                                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
-                                                                Rescheduled Classes
+                                                                Rescheduled ({teacher.rescheduleCount || 1}x)
                                                             </span>
                                                         )}
                                                     </div>
