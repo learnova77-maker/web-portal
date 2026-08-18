@@ -23,6 +23,7 @@ import { useFirebaseCollection, updateStatus } from "@/hooks/useFirebaseCollecti
 
 export default function TeachersPage() {
     const [searchTerm, setSearchTerm] = useState("");
+    const [showRescheduledOnly, setShowRescheduledOnly] = useState(false);
     const { data: teachers, loading, error } = useFirebaseCollection("teacher");
 
     // Chat Modal State
@@ -88,6 +89,15 @@ export default function TeachersPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setShowRescheduledOnly(!showRescheduledOnly)}
+                                className={`flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all border ${showRescheduledOnly ? 'bg-cyan-500 text-black border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)]' : 'bg-zinc-900 text-zinc-400 border-white/5 hover:border-white/10 hover:text-white'}`}
+                            >
+                                <Filter className="w-4 h-4" />
+                                {showRescheduledOnly ? "Rescheduled Teachers" : "All Teachers"}
+                            </button>
+                        </div>
                     </div>
 
                     {/* Table Container with Overflow X Auto */}
@@ -132,15 +142,17 @@ export default function TeachersPage() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    teachers.filter(t =>
-                                        t.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        t.expertise?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        t.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        t.whatsapp?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        t.whatsappNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        t.idNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        t.cnicNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-                                    ).map((teacher) => {
+                                    teachers.filter(t => {
+                                        if (showRescheduledOnly && !t.hasRescheduledLives) return false;
+                                        
+                                        return t.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            t.expertise?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            t.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            t.whatsapp?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            t.whatsappNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            t.idNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                            t.cnicNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+                                    }).map((teacher) => {
                                         const docType = (teacher.idType || 'cnic').toUpperCase();
                                         const docNum = teacher.idNumber || teacher.cnicNumber || teacher.passportNumber || 'N/A';
                                         const whatsappNo = teacher.whatsapp || teacher.whatsappNumber || '';
@@ -190,13 +202,20 @@ export default function TeachersPage() {
                                                 </td>
 
                                                 <td className="px-6 py-5">
-                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${(teacher.status === 'approved' || teacher.status === 'active')
-                                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                                        : 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20'
-                                                        }`}>
-                                                        {(teacher.status === 'approved' || teacher.status === 'active') ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Clock className="w-3 h-3" />}
-                                                        {teacher.status}
-                                                    </span>
+                                                    <div className="flex flex-col gap-2 items-start">
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${(teacher.status === 'approved' || teacher.status === 'active')
+                                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                                            : 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20'
+                                                            }`}>
+                                                            {(teacher.status === 'approved' || teacher.status === 'active') ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Clock className="w-3 h-3" />}
+                                                            {teacher.status}
+                                                        </span>
+                                                        {teacher.hasRescheduledLives && (
+                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                                                                Rescheduled Classes
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
 
                                                 <td className="px-6 py-5 text-right" onClick={(e) => e.stopPropagation()}>
