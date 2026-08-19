@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { ref, onValue, update, orderByKey, query as rtdbQuery } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 
-export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 'users' | 'blogs' = 'users', filterStatus?: string) {
+export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 'users' | 'blogs' | 'deleteRequests' = 'users', filterStatus?: string) {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<any>(null);
@@ -12,7 +12,7 @@ export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 
         if (!rtdb) return;
 
         // Path to your node based on type
-        const nodePath = type === 'blogs' ? 'blogs' : 'users';
+        const nodePath = type === 'blogs' ? 'blogs' : type === 'deleteRequests' ? 'deleteRequests' : 'users';
         const dataRef = ref(rtdb, nodePath);
         const q = rtdbQuery(dataRef, orderByKey());
 

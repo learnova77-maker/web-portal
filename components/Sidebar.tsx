@@ -19,7 +19,8 @@ import {
     Star,
     X,
     BellRing,
-    FileText
+    FileText,
+    Trash2
 } from "lucide-react";
 
 const navigation = [
@@ -27,6 +28,7 @@ const navigation = [
     { name: "Teachers", href: "/teachers", icon: Users },
     { name: "Students", href: "/students", icon: GraduationCap },
     { name: "Pending Approvals", href: "/pending", icon: Clock },
+    { name: "Delete Requests", href: "/delete-requests", icon: Trash2 },
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Reviews", href: "/reviews", icon: Star },
     { name: "Courses", href: "/courses", icon: BookOpen },
@@ -37,6 +39,8 @@ export default function Sidebar() {
     const pathname = usePathname();
     const { data: pending } = useFirebaseCollection("pending");
     const pendingCount = pending?.length || 0;
+    const { data: deleteRequests } = useFirebaseCollection("deleteRequests");
+    const deleteRequestsCount = deleteRequests?.length || 0;
 
     const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
     const [latestNotification, setLatestNotification] = useState<{
@@ -251,6 +255,12 @@ export default function Sidebar() {
                                     <span className={`ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-zinc-950 animate-pulse ${isActive ? "bg-black text-cyan-500" : "bg-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.5)]"
                                         }`}>
                                         {unreadMessagesCount}
+                                    </span>
+                                )}
+                                {item.name === "Delete Requests" && deleteRequestsCount > 0 && (
+                                    <span className={`ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-zinc-950 ${isActive ? "bg-black text-red-500" : "bg-red-500 text-white"
+                                        }`}>
+                                        {deleteRequestsCount}
                                     </span>
                                 )}
                             </Link>
