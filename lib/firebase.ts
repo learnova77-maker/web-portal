@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
@@ -21,7 +20,6 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
 console.log("Initializing Firebase with project:", firebaseConfig.projectId);
 
-export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const rtdb = getDatabase(app);
 export const storage = getStorage(app);

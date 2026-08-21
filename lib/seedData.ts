@@ -1,10 +1,9 @@
-import { db } from "./firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { rtdb } from "./firebase";
+import { ref, push, set } from "firebase/database";
 
 export async function seedSampleData() {
     try {
-        const teachersRef = collection(db, "teachers");
-        const studentsRef = collection(db, "students");
+        const usersRef = ref(rtdb, "users");
 
         // Sample Teachers
         const sampleTeachers = [
@@ -53,14 +52,33 @@ export async function seedSampleData() {
             }
         ];
 
-        console.log("Seeding data...");
+        console.log("Seeding data to Realtime Database...");
 
         for (const teacher of sampleTeachers) {
-            await addDoc(teachersRef, { ...teacher, createdAt: serverTimestamp() });
+            const newRef = push(usersRef);
+            await set(newRef, {
+                role: "teacher",
+                fullName: teacher.name,
+                email: teacher.email,
+                expertise: teacher.subject,
+                status: teacher.status,
+                qualifications: teacher.qualifications,
+                experience: teacher.experience,
+                joinedDate: teacher.joinedDate,
+                createdAt: Date.now()
+            });
         }
 
         for (const student of sampleStudents) {
-            await addDoc(studentsRef, { ...student, createdAt: serverTimestamp() });
+            const newRef = push(usersRef);
+            await set(newRef, {
+                role: "student",
+                fullName: student.name,
+                email: student.email,
+                grade: student.grade,
+                joinedDate: student.joinedAt,
+                createdAt: Date.now()
+            });
         }
 
         console.log("Seeding complete!");
