@@ -609,11 +609,11 @@ export default function TeacherVerificationModal({
                     </div>
 
                     {/* Bank / Payout Details */}
-                    {payoutDetails && (
-                        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 space-y-4">
-                            <h3 className="font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                                <Briefcase className="text-cyan-400" size={18} /> Payout / Bank Details
-                            </h3>
+                    <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 space-y-4">
+                        <h3 className="font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                            <Briefcase className="text-cyan-400" size={18} /> Payout / Bank Details
+                        </h3>
+                        {payoutDetails ? (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="bg-zinc-950 p-3 rounded-xl border border-white/5">
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Bank Name</p>
@@ -628,8 +628,12 @@ export default function TeacherVerificationModal({
                                     <p className="text-sm font-bold text-cyan-400 mt-1 font-mono">{payoutDetails.accountNumber || "N/A"}</p>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="bg-zinc-950 p-4 rounded-xl border border-dashed border-white/10 text-center">
+                                <p className="text-xs text-zinc-500 font-bold italic">None provided yet.</p>
+                            </div>
+                        )}
+                    </div>
 
                     {/* COMPREHENSIVE SUMMARY METRICS GRID */}
                     <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 space-y-3">
