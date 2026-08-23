@@ -62,6 +62,7 @@ export default function TeacherVerificationModal({
     const [isUpdating, setIsUpdating] = useState(false);
     const [imgErrors, setImgErrors] = useState<{ [key: string]: boolean }>({});
     const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
+    const [payoutDetails, setPayoutDetails] = useState<any>(null);
 
     // Activity Log & Summary Metrics State (20-by-20 pagination)
     const [activityLog, setActivityLog] = useState<any[]>([]);
@@ -115,6 +116,7 @@ export default function TeacherVerificationModal({
                             if (uKey) idsToMatch.add(String(uKey));
                             if (uVal.uid) idsToMatch.add(String(uVal.uid));
                             if (uVal.email) idsToMatch.add(String(uVal.email).toLowerCase());
+                            if (uVal.payoutDetails) setPayoutDetails(uVal.payoutDetails);
                         }
                     });
                 }
@@ -605,6 +607,29 @@ export default function TeacherVerificationModal({
                             </p>
                         </div>
                     </div>
+
+                    {/* Bank / Payout Details */}
+                    {payoutDetails && (
+                        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 space-y-4">
+                            <h3 className="font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
+                                <Briefcase className="text-cyan-400" size={18} /> Payout / Bank Details
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="bg-zinc-950 p-3 rounded-xl border border-white/5">
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Bank Name</p>
+                                    <p className="text-sm font-bold text-white mt-1">{payoutDetails.bankName || "N/A"}</p>
+                                </div>
+                                <div className="bg-zinc-950 p-3 rounded-xl border border-white/5">
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Account Title</p>
+                                    <p className="text-sm font-bold text-white mt-1">{payoutDetails.accountTitle || "N/A"}</p>
+                                </div>
+                                <div className="bg-zinc-950 p-3 rounded-xl border border-white/5">
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Account Number</p>
+                                    <p className="text-sm font-bold text-cyan-400 mt-1 font-mono">{payoutDetails.accountNumber || "N/A"}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* COMPREHENSIVE SUMMARY METRICS GRID */}
                     <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 space-y-3">
