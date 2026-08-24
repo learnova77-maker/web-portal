@@ -20,7 +20,8 @@ import {
     X,
     BellRing,
     FileText,
-    Trash2
+    Trash2,
+    ShieldOff
 } from "lucide-react";
 
 const navigation = [
@@ -29,6 +30,7 @@ const navigation = [
     { name: "Students", href: "/students", icon: GraduationCap },
     { name: "Pending Approvals", href: "/pending", icon: Clock },
     { name: "Delete Requests", href: "/delete-requests", icon: Trash2 },
+    { name: "Suspended", href: "/suspended", icon: ShieldOff },
     { name: "Messages", href: "/messages", icon: MessageSquare },
     { name: "Reviews", href: "/reviews", icon: Star },
     { name: "Courses", href: "/courses", icon: BookOpen },
@@ -41,6 +43,8 @@ export default function Sidebar() {
     const pendingCount = pending?.length || 0;
     const { data: deleteRequests } = useFirebaseCollection("deleteRequests");
     const deleteRequestsCount = deleteRequests?.length || 0;
+    const { data: suspended } = useFirebaseCollection("suspended");
+    const suspendedCount = suspended?.length || 0;
 
     const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
     const [latestNotification, setLatestNotification] = useState<{
@@ -261,6 +265,12 @@ export default function Sidebar() {
                                     <span className={`ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-zinc-950 ${isActive ? "bg-black text-red-500" : "bg-red-500 text-white"
                                         }`}>
                                         {deleteRequestsCount}
+                                    </span>
+                                )}
+                                {item.name === "Suspended" && suspendedCount > 0 && (
+                                    <span className={`ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black ring-2 ring-zinc-950 ${isActive ? "bg-black text-orange-500" : "bg-orange-500 text-white"
+                                        }`}>
+                                        {suspendedCount}
                                     </span>
                                 )}
                             </Link>

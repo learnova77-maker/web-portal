@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { ref, onValue, update, orderByKey, query as rtdbQuery } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 
-export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 'users' | 'blogs' | 'deleteRequests' = 'users', filterStatus?: string) {
+export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 'users' | 'blogs' | 'deleteRequests' | 'suspended' = 'users', filterStatus?: string) {
     const [data, setData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<any>(null);
@@ -33,6 +33,8 @@ export function useFirebaseCollection(type: 'teacher' | 'student' | 'pending' | 
                     filtered = items.filter(u => u.role === 'student');
                 } else if (type === 'pending') {
                     filtered = items.filter(u => u.role === 'teacher' && u.status === 'pending');
+                } else if (type === 'suspended') {
+                    filtered = items.filter(u => u.status === 'suspended');
                 }
 
                 if (filterStatus) {
