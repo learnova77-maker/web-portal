@@ -39,7 +39,7 @@ export default function SuspendedPage() {
             const sessionsRef = ref(rtdb, 'live_sessions');
             const snapshot = await get(sessionsRef);
             if (snapshot.exists()) {
-                const promises = [];
+                const promises: Promise<void>[] = [];
                 snapshot.forEach((childSnap) => {
                     const session = childSnap.val();
                     if (session.teacherId === userId && (session.status === 'live' || session.status === 'paused')) {
