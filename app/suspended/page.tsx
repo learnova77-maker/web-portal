@@ -13,7 +13,7 @@ import {
     Mail
 } from "lucide-react";
 import { useFirebaseCollection, updateStatus } from "@/hooks/useFirebaseCollection";
-import { ref, update } from "firebase/database";
+import { ref, update, get, remove } from "firebase/database";
 import { rtdb } from "@/lib/firebase";
 
 export default function SuspendedPage() {
@@ -26,6 +26,7 @@ export default function SuspendedPage() {
         
         setUnsuspending(userId);
         try {
+            // 1. Update user status
             const userRef = ref(rtdb, `users/${userId}`);
             await update(userRef, {
                 status: 'active',
@@ -33,6 +34,20 @@ export default function SuspendedPage() {
                 suspensionReason: null,
                 rescheduleCount: 0
             });
+
+            // 2. Remove any active/paused live sessions for this teacher
+            const sessionsRef = ref(rtdb, 'live_sessions');
+            const snapshot = await get(sessionsRef);
+            if (snapshot.exists()) {
+                const promises = [];
+                snapshot.forEach((childSnap) => {
+                    const session = childSnap.val();
+                    if (session.teacherId === userId && (session.status === 'live' || session.status === 'paused')) {
+                        promises.push(remove(ref(rtdb, `live_sessions/${childSnap.key}`)));
+                    }
+                });
+                await Promise.all(promises);
+            }
         } catch (err) {
             console.error("Failed to unsuspend user:", err);
             alert("Failed to unsuspend user.");
